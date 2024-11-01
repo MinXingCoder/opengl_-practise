@@ -10,20 +10,19 @@ struct Vertex
 
 struct Face
 {
-	Vertex a, b, c;
+	unsigned int a, b, c;
+};
+
+static std::vector<Vertex> vertices = {
+	{-0.5f, 0.5f, 0.0f},
+	{-0.5f, -0.5f, 0.0f},
+	{0.5f, -0.5f, 0.0f},
+	{0.5f, 0.5f, 0.0f}
 };
 
 static std::vector<Face> faces = {
-	{
-		{-0.5f, 0.5f, 0.0f},
-		{-0.5f, -0.5f, 0.0f},
-		{0.5f, -0.5f, 0.0f},
-	},
-	{
-		{-0.5f, 0.5f, 0.0f},
-		{0.5f, -0.5f, 0.0f},
-		{0.5f, 0.5f, 0.0f},
-	},
+	{0, 1, 2},
+	{0, 2, 3}
 };
 
 static void render()
@@ -32,9 +31,13 @@ static void render()
 
 	for (auto const& face : faces)
 	{
-		glVertex3f(face.a.x, face.a.y, face.a.z);
-		glVertex3f(face.b.x, face.b.y, face.b.z);
-		glVertex3f(face.c.x, face.c.y, face.c.z);
+		Vertex a = vertices[face.a];
+		Vertex b = vertices[face.b];
+		Vertex c = vertices[face.c];
+
+		glVertex3f(a.x, a.y, a.z);
+		glVertex3f(b.x, b.y, b.z);
+		glVertex3f(c.x, c.y, c.z);
 	}
 
 	glEnd();
@@ -52,7 +55,7 @@ static void mouse_button_callback(GLFWwindow* window, int button, int action, in
 		float x = (float)(2 * xpos / width - 1);
 		float y = (float)(2 * (height - ypos) / height - 1);
 
-		faces[0].a = Vertex{ x, y, 0 };
+		vertices[0] = Vertex{x, y, 0};
 	}
 }
 
