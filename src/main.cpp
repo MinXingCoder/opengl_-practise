@@ -39,19 +39,20 @@ static void load_obj(std::string path)
 			Vertex vertex;
 			s >> vertex.x >> vertex.y >> vertex.z;
 			vertices.push_back(vertex);
-		} else if(line.substr(0, 2) == "f ") {
+		} else if (line.substr(0, 2) == "f ") {
 			std::istringstream s(line.substr(2));
-			std::string sa, sb, sc;
-			Face face;
-			s >> sa >> sb >> sc;
-			std::istringstream(sa) >> face.a;
-			std::istringstream(sb) >> face.b;
-			std::istringstream(sc) >> face.c;
-			face.a--;
-			face.b--;
-			face.c--;
-			faces.push_back(face);
- 		}
+			std::string splitted;
+			std::vector<unsigned int> indices;
+			while (std::getline(s, splitted, ' ')) {
+				unsigned int index;
+				std::istringstream(splitted) >> index;
+				indices.push_back(index - 1);
+			}
+			for (size_t i = 2; i < indices.size(); ++i) {
+				Face face = { indices[0], indices[i - 1], indices[i] };
+				faces.push_back(face);
+			}
+		}
 	}
 
 	file.close();
