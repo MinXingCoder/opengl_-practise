@@ -1,5 +1,6 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
 #include <stdexcept>
 #include <vector>
 #include <fstream>
@@ -17,9 +18,8 @@ struct Face
 	unsigned int a, b, c;
 };
 
-static std::vector<Vertex> vertices;
-
-static std::vector<Face> faces;
+static std::vector<glm::vec3> vertices;
+static std::vector<glm::vec3> faces;
 
 static void load_obj(std::string path)
 {
@@ -36,7 +36,7 @@ static void load_obj(std::string path)
 		if (line.substr(0, 2) == "v ")
 		{
 			std::istringstream s(line.substr(2));
-			Vertex vertex;
+			glm::vec3 vertex;
 			s >> vertex.x >> vertex.y >> vertex.z;
 			vertices.push_back(vertex);
 		} else if (line.substr(0, 2) == "f ") {
@@ -48,8 +48,9 @@ static void load_obj(std::string path)
 				std::istringstream(splitted) >> index;
 				indices.push_back(index - 1);
 			}
+
 			for (size_t i = 2; i < indices.size(); ++i) {
-				Face face = { indices[0], indices[i - 1], indices[i] };
+				glm::uvec3 face = { indices[0], indices[i - 1], indices[i] };
 				faces.push_back(face);
 			}
 		}
@@ -65,9 +66,9 @@ static void draw_obj()
 	
 	for (auto const& face : faces)
 	{
-		auto const& a = vertices.at(face.a);
-		auto const& b = vertices.at(face.b);
-		auto const& c = vertices.at(face.c);
+		auto const& a = vertices.at(face.x);
+		auto const& b = vertices.at(face.y);
+		auto const& c = vertices.at(face.z);
 
 		glVertex3f(a.x, a.y, a.z);
 		glVertex3f(b.x, b.y, b.z);
@@ -89,7 +90,7 @@ static void mouse_button_callback(GLFWwindow* window, int button, int action, in
 		float x = (float)(2 * xpos / width - 1);
 		float y = (float)(2 * (height - ypos) / height - 1);
 
-		vertices[0] = Vertex{x, y, 0};
+		vertices[0] = glm::vec3{x, y, 0};
 	}
 }
 
