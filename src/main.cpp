@@ -1,6 +1,8 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <stdexcept>
 #include <vector>
 #include <fstream>
@@ -20,6 +22,10 @@ struct Face
 
 static std::vector<glm::vec3> vertices;
 static std::vector<glm::vec3> faces;
+
+static glm::vec3 perspective_divide(glm::vec4 pos) {
+	return glm::vec3(pos.x / pos.w, pos.y / pos.w, pos.z / pos.w);
+}
 
 static void load_obj(std::string path)
 {
@@ -60,7 +66,7 @@ static void load_obj(std::string path)
 	std::cout << "Loaded " << vertices.size() << "vertices.\n";
 }
 
-static void draw_obj()
+static void draw_obj(glm::mat4x4 model, glm::mat4x4 view, glm::mat4x4 projection)
 {
 	glBegin(GL_TRIANGLES);
 	
@@ -70,29 +76,35 @@ static void draw_obj()
 		auto const& b = vertices.at(face.y);
 		auto const& c = vertices.at(face.z);
 
-		glVertex3f(a.x, a.y, a.z);
-		glVertex3f(b.x, b.y, b.z);
-		glVertex3f(c.x, c.y, c.z);
+		glVertex3fv(glm::value_ptr(
+			perspective_divide(projection * view * model * glm::vec4(a, 1))
+		));
+		glVertex3fv(glm::value_ptr(
+			perspective_divide(projection * view * model * glm::vec4(b, 1))
+		));
+		glVertex3fv(glm::value_ptr(
+			perspective_divide(projection * view * model * glm::vec4(c, 1))
+		));
 	}
 
 	glEnd();
 }
 
-static void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
-{
-	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
-	{
-		double xpos, ypos;
-		int width, height;
-		glfwGetCursorPos(window, &xpos, &ypos);
-		glfwGetWindowSize(window, &width, &height);
-
-		float x = (float)(2 * xpos / width - 1);
-		float y = (float)(2 * (height - ypos) / height - 1);
-
-		vertices[0] = glm::vec3{x, y, 0};
-	}
-}
+//static void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
+//{
+//	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+//	{
+//		double xpos, ypos;
+//		int width, height;
+//		glfwGetCursorPos(window, &xpos, &ypos);
+//		glfwGetWindowSize(window, &width, &height);
+//
+//		float x = (float)(2 * xpos / width - 1);
+//		float y = (float)(2 * (height - ypos) / height - 1);
+//
+//		vertices[0] = glm::vec3{x, y, 0};
+//	}
+//}
 
 int main()
 {
@@ -119,14 +131,26 @@ int main()
 
 	printf("OpenGL version:", glGetString(GL_VERSION));
 
-	glfwSetMouseButtonCallback(window, mouse_button_callback);
+	// glfwSetMouseButtonCallback(window, mouse_button_callback);
 
 	load_obj("C:\\Users\\scc\\Desktop\\opengl_-practise\\assets\\monkey.obj");
+
+	int width, height;
+	glfwGetWindowSize(window, &width, &height);
+	glm::mat4x4 projection = glm::perspective(glm::radians(40.0f),
+													(float)width / height, 0.01f, 100.0f);
+
+	glm::vec3 eye(0.0f, 0.0f, 5.0f);
+	glm::vec3 center(0.0f, 0.0f, 0.0f);
+	glm::vec3 up(0.0f, 1.0f, 0.0f);
+	glm::mat4x4 view = glm::lookAt(eye, center, up);
+
+	glm::mat4x4 model(1);
 	
 	while (!glfwWindowShouldClose(window))
 	{	
 		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-		draw_obj();
+		draw_obj(model, view, projection);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
